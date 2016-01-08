@@ -24,6 +24,7 @@ import UIKit
 
 extension RAMAnimatedTabBarItem {
     
+    // 重写badgeValue，赋值时会跳到这
     override var badgeValue: String? {
         get {
             return badge?.text
@@ -81,6 +82,12 @@ class RAMAnimatedTabBarItem: UITabBarItem {
 
 extension  RAMAnimatedTabBarController {
     
+    /**
+     改变Item的颜色
+     
+     - parameter textSelectedColor: 文字颜色
+     - parameter iconSelectedColor: Icon颜色
+     */
     func changeSelectedColor(textSelectedColor:UIColor, iconSelectedColor:UIColor) {
         
         let items = tabBar.items as! [RAMAnimatedTabBarItem]
@@ -96,6 +103,11 @@ extension  RAMAnimatedTabBarController {
         }
     }
     
+    /**
+     隐藏TabBar
+     
+     - parameter isHidden: 是否隐藏
+     */
     func animationTabBarHidden(isHidden:Bool) {
         let items = tabBar.items as! [RAMAnimatedTabBarItem]
         for item in items {
@@ -115,8 +127,10 @@ class RAMAnimatedTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // 创建5个对应的容器view
         let containers = createViewContainers()
         
+        // 把原生的Item图片和文字转移到创建的容器View上
         createCustomIcons(containers)
     }
     
@@ -167,6 +181,14 @@ class RAMAnimatedTabBarController: UITabBarController {
         }
     }
     
+    /**
+     布局容器子控件
+     
+     - parameter view:      子控件
+     - parameter container: 容器
+     - parameter size:      大小
+     - parameter yOffset:   y轴的值
+     */
     func createConstraints(view:UIView, container:UIView, size:CGSize, yOffset:CGFloat) {
         
         let constX = NSLayoutConstraint(item: view,
@@ -206,12 +228,18 @@ class RAMAnimatedTabBarController: UITabBarController {
         view.addConstraint(constH)
     }
     
+    /**
+     创建5个自定义容器
+     
+     - returns: 容器字典
+     */
     func createViewContainers() -> NSDictionary {
         
         var containersDict = [String: AnyObject]()
         let itemsCount : Int = tabBar.items!.count as Int - 1
         
         for index in 0...itemsCount {
+            // 创建容器view
             let viewContainer = createViewContainer()
             containersDict["container\(index)"] = viewContainer
         }
@@ -232,18 +260,24 @@ class RAMAnimatedTabBarController: UITabBarController {
         return containersDict
     }
     
+    /**
+     创建装载TabBarItem的View
+     
+     - returns: 自定义View
+     */
     func createViewContainer() -> UIView {
+        // 创建View
         let viewContainer = UIView();
         viewContainer.backgroundColor = UIColor.clearColor() // for test
         viewContainer.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(viewContainer)
         
-        // add gesture
+        // 添加手势
         let tapGesture = UITapGestureRecognizer(target: self, action: "tapHandler:")
         tapGesture.numberOfTouchesRequired = 1
         viewContainer.addGestureRecognizer(tapGesture)
         
-        // add constrains
+        // 添加布局
         let constY = NSLayoutConstraint(item: viewContainer,
             attribute: NSLayoutAttribute.Bottom,
             relatedBy: NSLayoutRelation.Equal,
@@ -268,6 +302,11 @@ class RAMAnimatedTabBarController: UITabBarController {
     
     // MARK: actions
     
+    /**
+    轻触手势响应
+    
+    - parameter gesture: 手势
+    */
     func tapHandler(gesture:UIGestureRecognizer) {
         
         let items = tabBar.items as! [RAMAnimatedTabBarItem]
@@ -280,17 +319,22 @@ class RAMAnimatedTabBarController: UITabBarController {
         }
         
         if selectedIndex != currentIndex {
+            // 不是前一个选中的Item
             let animationItem : RAMAnimatedTabBarItem = items[currentIndex]
+            // 开启动画
             animationItem.playAnimation()
             
+            // 前一个Item关闭动画
             let deselectItem = items[selectedIndex]
             deselectItem.deselectAnimation()
             
+            // 选中index赋值
             selectedIndex = gesture.view!.tag
 
             delegate?.tabBarController?(self, didSelectViewController: self)
         } else if selectedIndex == currentIndex {
             
+            // 如果是导航控制器，跳转到导航控制器对应的根控制器
             if let navVC = self.viewControllers![selectedIndex] as? UINavigationController {
                 navVC.popToRootViewControllerAnimated(true)
             }
